@@ -1,28 +1,35 @@
 package com.av.SwaggerMock;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
-import com.github.tomakehurst.wiremock.client.WireMock;
+import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 import com.github.tomakehurst.wiremock.stubbing.StubMapping;
+import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import org.springframework.stereotype.Component;
-
-import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
 
 @Component
 public class WireMockManager {
     private WireMockServer wireMockServer;
 
-    public synchronized void startServerIfNotRunning() {
+    @PostConstruct
+    public void startWireMock() {
         if (wireMockServer == null || !wireMockServer.isRunning()) {
             System.out.println("Starting WireMock server on port 9456");
-            wireMockServer = new WireMockServer(options().port(9456));
+
+            WireMockConfiguration config = WireMockConfiguration.wireMockConfig()
+                    .port(9456);
+            wireMockServer = new WireMockServer(config);
             wireMockServer.start();
-            WireMock.configureFor("localhost", 9456);
+
         }
     }
 
+    public WireMockServer getServer() {
+        return wireMockServer;
+    }
+
     public void addMapping(StubMapping mapping) {
-        startServerIfNotRunning();
+        //startServerIfNotRunning();
         wireMockServer.addStubMapping(mapping);
     }
 

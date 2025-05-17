@@ -9,21 +9,35 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/wiremock")
 @RequiredArgsConstructor
 public class WireMockController {
 
     private final WireMockManager wireMockManager;
+    private final OpenApiToWireMockService openApiToWireMockService;
 
-    @PostMapping("/mapping")
+    @PostMapping("/upload-mapping")
     public ResponseEntity<String> addStubMapping(@RequestBody String mappingJson) {
         try {
             StubMapping mapping = Json.read(mappingJson, StubMapping.class);
-            wireMockManager.addMapping(mapping);
+            wireMockManager.getServer().addStubMapping(mapping);
             return ResponseEntity.ok("Mapping added.");
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Invalid mapping: " + e.getMessage());
+        }
+    }
+
+    @PostMapping("/upload-spec")
+    public ResponseEntity<?> uploadOpenApiSpec(@RequestBody String specContent) {
+        try {
+            List<StubMapping> mappings = openApiToWireMockService.generateStubMappings(specContent);
+            mappings.forEach(wireMockManager::addMapping);
+            return ResponseEntity.ok("Mappings created: " + mappings.size());
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Error processing spec: " + e.getMessage());
         }
     }
 }
