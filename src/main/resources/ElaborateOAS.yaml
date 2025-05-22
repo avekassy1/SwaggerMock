@@ -1,0 +1,104 @@
+openapi: 3.0.0
+info:
+  title: Plant Store Inventory API
+  version: 1.0.0
+  description: |
+    The Plant Store Inventory API enables developers to manage the inventory of plants for an online plant store. It provides operations for adding, retrieving, updating, and deleting plant information.
+    **Capabilities and Operations:**
+    * **Plant Management:**
+        * Add new plants to the inventory.
+        * Retrieve details of a specific plant using its SKU (Stock Keeping Unit).
+        * Update plant information (e.g., name, species, price, stock quantity).
+        * Remove plants from the inventory.
+    * **Inventory Search:**
+        * Search for plants by name, species, or common name.
+        * Filter search results by category (e.g., indoor, outdoor), light requirements, or price range.
+    **Resource Collections:**
+    * **/plants**: Represents the collection of all plants in the inventory.
+    **External Documentation:**
+    * **API Reference:** [https://api.exampleplantstore.com/docs](https://api.exampleplantstore.com/docs) -  Provides detailed information on all API endpoints, parameters, and response formats.
+servers:
+  - url: https://api.exampleplantstore.com/v1
+    description: Production server
+paths:
+  /plants:
+    get:
+      operationId: ListPlants
+      summary: Retrieve a list of plants.
+      description: |
+        Returns a paginated list of plants in the inventory. You can use query parameters to filter and sort the results.
+      parameters:
+        - in: query
+          name: q
+          schema:
+            type: string
+          description: A query string to search for plants by name, species, or common name.
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 25
+            minimum: 1
+            maximum: 100
+          description: The maximum number of plants to return per page (default is 25).
+        - in: query
+          name: offset
+          schema:
+            type: integer
+            default: 0
+            minimum: 0
+          description: The offset from the first plant to return (used for pagination).
+      responses:
+        '200':
+          description: A list of plants.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Plant'
+        '400':
+          description: Bad Request - Invalid request parameters.
+          content:
+            application/problem+json:
+              schema:
+                $ref: 'https://api.example.com/error/schema.yaml#/Error'
+    post:
+      operationId: AddPlant
+      summary: Add a new plant to the inventory.
+      description:  Adds a new plant to the plant store's inventory.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Plant'
+      responses:
+        '201':
+          description: Plant created successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Plant'
+        '400':
+          description: Bad Request - Invalid plant data provided.
+          content:
+            application/problem+json:
+              schema:
+                $ref: 'https://api.example.com/error/schema.yaml#/Error'
+  # ... Other paths and operations for plant management ...
+components:
+  schemas:
+    Plant:
+      type: object
+      properties:
+        sku:
+          type: string
+          description: The unique Stock Keeping Unit (SKU) of the plant.
+        name:
+          type: string
+          description: The scientific or botanical name of the plant.
+        species:
+          type: string
+          description: The species of the plant.
+        # ... other plant properties ...
