@@ -3,6 +3,7 @@ package com.av.SwaggerMock;
 import com.github.tomakehurst.wiremock.client.MappingBuilder;
 import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder;
 import com.github.tomakehurst.wiremock.client.WireMock;
+import com.github.tomakehurst.wiremock.matching.StringValuePattern;
 import com.github.tomakehurst.wiremock.stubbing.StubMapping;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.Operation;
@@ -11,8 +12,8 @@ import io.swagger.v3.oas.models.parameters.Parameter;
 import io.swagger.v3.parser.OpenAPIV3Parser;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 
@@ -47,30 +48,32 @@ public class OpenApiToWireMockService {
 
         List<Parameter> pathParams = pathItem.getParameters();
 
-        // TODO - filter out header, query, and cookie parameters
-        // and the format has to be changed to whatever the wiremockbuilder will accept
-        List<Parameter> operationParams = operation.getParameters();
-        List<Parameter> headerParams = new ArrayList<>();
-        headerParams = operationParams.stream().filter(s -> s.getIn() == "header").toList();
-        List<Parameter> queryParams = new ArrayList<>();
-        headerParams = operationParams.stream().filter(s -> s.getIn() == "query").toList();
+        // TODO - filter cookie parameters too!
+        List<Parameter> operationParams = Optional.ofNullable(operation.getParameters()).orElse(Collections.emptyList());
 
-        System.out.println("urlEqualTo(path) -> " + path);
+        List<Parameter> queryParams = operationParams.stream().filter(s -> Objects.equals(s.getIn(), "query")).toList();
+        Map<String, StringValuePattern> queryParamsMap =
+                queryParams.stream().collect(Collectors.toMap(Parameter::getName, p -> equalTo("temporary")));
+        List<Parameter> headerParams = operationParams.stream().filter(s -> Objects.equals(s.getIn(), "header")).toList();
 
+        // REQUEST
         MappingBuilder requestPattern =
-//            WireMock.request(method.name(), WireMock.urlEqualTo(path))
             WireMock.request(method.name(), WireMock.urlPathTemplate(path))
                 .withPathParam(pathParams.get(0).getName(), equalTo("123")) // no withPathParams so need to loop
-                        //.withHeader() // withHeaders only available on ResponseDefinitionBuilder???
-                        //.withQueryParams()
-//                        .withPathParams()
-                ;
+                // .withCookie()
+                .withQueryParams(queryParamsMap);
+
+        if (!headerParams.isEmpty()) {
+            requestPattern
+                    .withHeader(headerParams.get(0).getName(), equalTo(String.valueOf(UUID.randomUUID()))); // withHeaders only available on ResponseDefinitionBuilder???
+        }
+
+        // RESPONSE
         ResponseDefinitionBuilder responseDefinition =
                 new ResponseDefinitionBuilder()
                         .withStatus(200)
-                        .withStatusMessage(String.format("Non-dynamic status message. " +
-                                "path item params: %s", pathParams));
-//                                "path params: %s", pathParams));
+                        .withStatusMessage(String.format("Status message. " +
+                                "added path and query params"));
 
         StubMapping stubMapping = requestPattern.willReturn(responseDefinition).build();
 
@@ -91,16 +94,8 @@ public class OpenApiToWireMockService {
 ////                        .withBody("Hello world!" + serverDescription))
 //                                .build();
 
-    //  Error processing spec: Cannot invoke "java.util.List.isEmpty()" because "params" is null
-//        if (!params.isEmpty()) {
-//            headerParams = params.stream().filter(s -> s.getIn() == "header").toList();
-//            pathParams = params.stream().filter(s -> s.getIn() == "path").toList();
-//            queryParams = params.stream().filter(s -> s.getIn() == "query").toList();
-//        }
-
 // Questions and thoughts
 // - Would this work with $ref values (within same or different files)
 // - Add validation step in there
-// - What values can I extract from the openAPI object and from each path?
-// - Automatic generation of examples of none provided?
+// - Automatic generation of examples of none provided
 }
