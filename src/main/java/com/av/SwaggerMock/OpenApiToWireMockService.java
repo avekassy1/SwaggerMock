@@ -8,6 +8,7 @@ import com.github.tomakehurst.wiremock.stubbing.StubMapping;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.Operation;
 import io.swagger.v3.oas.models.PathItem;
+import io.swagger.v3.oas.models.media.Schema;
 import io.swagger.v3.oas.models.parameters.Parameter;
 import io.swagger.v3.parser.OpenAPIV3Parser;
 import org.springframework.stereotype.Service;
@@ -46,15 +47,19 @@ public class OpenApiToWireMockService {
             PathItem.HttpMethod method,
             Operation operation) {
 
+        // Path params
         List<Parameter> pathParams = pathItem.getParameters();
 
-        // TODO - filter cookie parameters too!
+        // Operation params - query, header, and cookie
         List<Parameter> operationParams = Optional.ofNullable(operation.getParameters()).orElse(Collections.emptyList());
 
         List<Parameter> queryParams = operationParams.stream().filter(s -> Objects.equals(s.getIn(), "query")).toList();
         Map<String, StringValuePattern> queryParamsMap =
                 queryParams.stream().collect(Collectors.toMap(Parameter::getName, p -> equalTo("temporary")));
         List<Parameter> headerParams = operationParams.stream().filter(s -> Objects.equals(s.getIn(), "header")).toList();
+        // TODO - function for generating example from schema. How do I access schema? From parameter
+        List<Parameter> cookieParams = operationParams.stream().filter(s -> Objects.equals(s.getIn(), "cookie")).toList();
+
 
         // REQUEST
         MappingBuilder requestPattern =
@@ -64,6 +69,9 @@ public class OpenApiToWireMockService {
                 .withQueryParams(queryParamsMap);
 
         if (!headerParams.isEmpty()) {
+            Schema schema = headerParams.get(0).getSchema();
+            String type = schema.getType();
+            // Now what? It automatically recognised the UUID schema
             requestPattern
                     .withHeader(headerParams.get(0).getName(), equalTo(String.valueOf(UUID.randomUUID()))); // withHeaders only available on ResponseDefinitionBuilder???
         }
@@ -95,7 +103,10 @@ public class OpenApiToWireMockService {
 //                                .build();
 
 // Questions and thoughts
-// - Would this work with $ref values (within same or different files)
-// - Add validation step in there
-// - Automatic generation of examples of none provided
+    // - What pattern/design would be the best for the stub creator? Builder perhaps? Mapstruct?
+    // - Considerations for wiremock extension?
+    // - Would this work with $ref values (within same or different files)
+    // - Add validation step in there
+    // - Automatic generation of examples of none provided
+    // - Code for deleting or modifying mapping (from UI in future)
 }
