@@ -10,7 +10,6 @@ import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.Operation;
 import io.swagger.v3.oas.models.PathItem;
 import io.swagger.v3.oas.models.media.Schema;
-import io.swagger.v3.oas.models.parameters.HeaderParameter;
 import io.swagger.v3.oas.models.parameters.Parameter;
 import io.swagger.v3.parser.OpenAPIV3Parser;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,6 +23,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 @Service
 public class OpenApiToWireMockService {
 
+    private static final String TEMPORARY = "NO PATTERN FACTORY YET";
     private final SchemaToPatternDispatcher schemaToPatternDispatcher;
 
     @Autowired
@@ -68,45 +68,66 @@ public class OpenApiToWireMockService {
     private MappingBuilder createRequestPattern(
         String path, PathItem pathItem, Operation operation, PathItem.HttpMethod method) {
 
-        // Path params
-        List<Parameter> pathParams = pathItem.getParameters();
+        MappingBuilder requestPattern = WireMock.request(method.name(), WireMock.urlPathTemplate(path));
 
-        // Operation params - query, header, and cookie params
-        List<Parameter> operationParams = Optional.ofNullable(operation.getParameters()).orElse(Collections.emptyList());
+        List<Parameter> allParams = getAllParameters(pathItem, operation);
+        Map<String, List<Parameter>> paramGroups = groupParametersByIn(allParams);
 
-        List<Parameter> queryParams = operationParams.stream().filter(s -> Objects.equals(s.getIn(), "query")).toList();
-        Map<String, StringValuePattern> queryParamsMap =
-            queryParams.stream().collect(Collectors.toMap(Parameter::getName, p -> equalTo("temporary")));
-        List<Parameter> headerParams = operationParams.stream().filter(s -> Objects.equals(s.getIn(), "header")).toList();
-        List<Parameter> cookieParams = operationParams.stream().filter(s -> Objects.equals(s.getIn(), "cookie")).toList();
+        putParametersOnRequestPattern(paramGroups, requestPattern);
 
-        MappingBuilder requestPattern =
-            WireMock.request(method.name(), WireMock.urlPathTemplate(path))
-                .withPathParam(pathParams.get(0).getName(), equalTo("123")) // no withPathParams so need to loop
-                // .withCookie()
-                .withQueryParams(queryParamsMap);
-
-        if (!headerParams.isEmpty()) {
-            for (Parameter parameter : headerParams) {
-                Schema schema = parameter.getSchema();
-                StringValuePattern pattern = schemaToPatternDispatcher.createPattern(schema);
-                requestPattern.withHeader(parameter.getName(), pattern);
-            }
-            // TODO - generate the equalTo(...) automatically using schemaToPatternDispatcher
-
-//            requestPattern
-//                    .withHeader(headerParams.get(0).getName(), equalTo(String.valueOf(UUID.randomUUID()))); // withHeaders only available on ResponseDefinitionBuilder???
-//                    .withHeader(headerParams.get(0).getName(), absent());
-        }
         return requestPattern;
     }
 
     private ResponseDefinitionBuilder createResponseDefinitionBuilder() {
         ResponseDefinitionBuilder responseDefinition =
             new ResponseDefinitionBuilder()
-                .withStatus(200)
-                .withStatusMessage(String.format("Status message. Added path and query params"));
+                .withStatus(200); // TODO - fill up with variable
+        //.withStatusMessage(String.format("Status message. Added path and query params"));
         return responseDefinition;
+    }
+
+    private Map<String, List<Parameter>> groupParametersByIn(List<Parameter> parameters) {
+        return parameters.stream()
+            .filter(p -> p.getIn() != null)
+            .collect(Collectors.groupingBy(Parameter::getIn));
+    }
+
+    private List<Parameter> getAllParameters(PathItem pathItem, Operation operation) {
+        List<Parameter> allParams = new ArrayList<>();
+
+        Optional.ofNullable(pathItem.getParameters())
+            .ifPresent(allParams::addAll);
+
+        Optional.ofNullable(operation.getParameters())
+            .ifPresent(allParams::addAll);
+
+        return  allParams;
+    }
+
+    private void putParametersOnRequestPattern(Map<String, List<Parameter>> paramGroups, MappingBuilder requestPattern) {
+        List<Parameter> pathParams = paramGroups.getOrDefault("path", Collections.emptyList());
+        List<Parameter> queryParams = paramGroups.getOrDefault("query", Collections.emptyList());
+        List<Parameter> headerParams = paramGroups.getOrDefault("header", Collections.emptyList());
+        List<Parameter> cookieParams = paramGroups.getOrDefault("cookie", Collections.emptyList());
+
+        for (Parameter parameter: pathParams) {
+            requestPattern.withPathParam(parameter.getName(), equalTo(TEMPORARY)); // TODO - replace with dispatcher
+        }
+
+        for (Parameter parameter: headerParams) {
+            Schema schema = parameter.getSchema();
+            StringValuePattern pattern = schemaToPatternDispatcher.createPattern(schema);
+            requestPattern.withHeader(parameter.getName(), pattern);
+        }
+
+        for (Parameter parameter: queryParams) {
+            // withQueryParams() takes in a map which may not work with MultiValuePatterns
+            requestPattern.withQueryParam(parameter.getName(), equalTo(TEMPORARY)); // TODO - replace with dispatcher
+        }
+
+        for (Parameter parameter: cookieParams) {
+            requestPattern.withCookie(parameter.getName(), equalTo(TEMPORARY)); // TODO - replace with dispatcher
+        }
     }
 }
 

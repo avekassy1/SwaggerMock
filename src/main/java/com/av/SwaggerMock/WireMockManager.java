@@ -17,7 +17,7 @@ public class WireMockManager {
             System.out.println("Starting WireMock server on port 9456");
 
             WireMockConfiguration config = WireMockConfiguration.wireMockConfig()
-                    .port(9456);
+                .port(9456);
             wireMockServer = new WireMockServer(config);
             wireMockServer.start();
 
