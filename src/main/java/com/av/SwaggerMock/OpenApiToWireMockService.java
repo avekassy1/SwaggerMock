@@ -1,6 +1,6 @@
 package com.av.SwaggerMock;
 
-import com.av.SwaggerMock.Mapper.SchemaToPatternDispatcher;
+import com.av.SwaggerMock.PatternBuilder.SchemaToPatternBuilderDispatcher;
 import com.github.tomakehurst.wiremock.client.MappingBuilder;
 import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder;
 import com.github.tomakehurst.wiremock.client.WireMock;
@@ -18,17 +18,17 @@ import org.springframework.stereotype.Service;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static com.av.SwaggerMock.PatternBuilder.PatternBuilderUtils.TEMPORARY;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 
 @Service
 public class OpenApiToWireMockService {
 
-    private static final String TEMPORARY = "NO PATTERN FACTORY YET";
-    private final SchemaToPatternDispatcher schemaToPatternDispatcher;
+    private final SchemaToPatternBuilderDispatcher schemaToPatternBuilderDispatcher;
 
     @Autowired
-    public OpenApiToWireMockService(SchemaToPatternDispatcher schemaToPatternDispatcher) {
-        this.schemaToPatternDispatcher = schemaToPatternDispatcher;
+    public OpenApiToWireMockService(SchemaToPatternBuilderDispatcher schemaToPatternBuilderDispatcher) {
+        this.schemaToPatternBuilderDispatcher = schemaToPatternBuilderDispatcher;
     }
 
     public List<StubMapping> generateStubMappings(String specContent) {
@@ -101,7 +101,7 @@ public class OpenApiToWireMockService {
         Optional.ofNullable(operation.getParameters())
             .ifPresent(allParams::addAll);
 
-        return  allParams;
+        return allParams;
     }
 
     private void putParametersOnRequestPattern(Map<String, List<Parameter>> paramGroups, MappingBuilder requestPattern) {
@@ -110,22 +110,24 @@ public class OpenApiToWireMockService {
         List<Parameter> headerParams = paramGroups.getOrDefault("header", Collections.emptyList());
         List<Parameter> cookieParams = paramGroups.getOrDefault("cookie", Collections.emptyList());
 
-        for (Parameter parameter: pathParams) {
+        for (Parameter parameter : pathParams) {
             requestPattern.withPathParam(parameter.getName(), equalTo(TEMPORARY)); // TODO - replace with dispatcher
         }
 
-        for (Parameter parameter: headerParams) {
+        for (Parameter parameter : headerParams) {
             Schema schema = parameter.getSchema();
-            StringValuePattern pattern = schemaToPatternDispatcher.createPattern(schema);
+            StringValuePattern pattern = schemaToPatternBuilderDispatcher.createPattern(schema);
             requestPattern.withHeader(parameter.getName(), pattern);
         }
 
-        for (Parameter parameter: queryParams) {
+        for (Parameter parameter : queryParams) {
             // withQueryParams() takes in a map which may not work with MultiValuePatterns
-            requestPattern.withQueryParam(parameter.getName(), equalTo(TEMPORARY)); // TODO - replace with dispatcher
+            Schema schema = parameter.getSchema();
+            StringValuePattern pattern = schemaToPatternBuilderDispatcher.createPattern(schema);
+            requestPattern.withQueryParam(parameter.getName(), pattern); // TODO - replace with dispatcher
         }
 
-        for (Parameter parameter: cookieParams) {
+        for (Parameter parameter : cookieParams) {
             requestPattern.withCookie(parameter.getName(), equalTo(TEMPORARY)); // TODO - replace with dispatcher
         }
     }

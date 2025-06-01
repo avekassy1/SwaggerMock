@@ -66,7 +66,7 @@ paths:
     post:
       operationId: AddPlant
       summary: Add a new plant to the inventory.
-      description:  Adds a new plant to the plant store's inventory.
+      description: Adds a new plant to the plant store's inventory.
       requestBody:
         required: true
         content:

@@ -17,10 +17,10 @@ public class WireMockManager {
             System.out.println("Starting WireMock server on port 9456");
 
             WireMockConfiguration config = WireMockConfiguration.wireMockConfig()
-                .port(9456);
+                .port(9999);
+            //.port(9456); // TODO - ask John why adding tests caused this issue and how would he configure the
             wireMockServer = new WireMockServer(config);
             wireMockServer.start();
-
         }
     }
 

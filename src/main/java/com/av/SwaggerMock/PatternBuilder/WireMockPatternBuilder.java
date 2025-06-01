@@ -1,9 +1,9 @@
-package com.av.SwaggerMock.Mapper;
+package com.av.SwaggerMock.PatternBuilder;
 
 import com.github.tomakehurst.wiremock.matching.StringValuePattern;
 import io.swagger.v3.oas.models.media.Schema;
 
-public interface WireMockPatternFactory {
+public interface WireMockPatternBuilder {
 
     boolean supports(Schema<?> schema);
 
