@@ -35,32 +35,22 @@ public class StringSchemaPatternBuilder implements WireMockPatternBuilder {
             return WireMock.equalTo(enumValues.get(0));
         }
 
-        // 2. Use example if defined
-        if (stringSchema.getExample() != null) {
-            return WireMock.equalTo(stringSchema.getExample().toString());
-        }
-
-        // 3. Use default value
-        if (stringSchema.getDefault() != null) {
-            return WireMock.equalTo(stringSchema.getDefault().toString());
-        }
-
-        // 4. Regex pattern
+        // 2. Regex pattern
         if (stringSchema.getPattern() != null) {
             return WireMock.matching(stringSchema.getPattern());
         }
 
-        // 5. Length constraints (minLength / maxLength)
+        // 3. Length constraints (minLength / maxLength)
         if (stringSchema.getMinLength() != null || stringSchema.getMaxLength() != null) {
             return buildLengthMatcher(stringSchema.getMinLength(), stringSchema.getMaxLength());
         }
 
-        // 6. Enum (not constant)
+        // 4. Enum (not constant)
         if (enumValues != null && !enumValues.isEmpty()) {
             return WireMock.matching(String.join("|", enumValues));
         }
 
-        // 7. Fallback: wildcard match
+        // 5. Fallback: wildcard match
         System.out.println("Fallback for param named " + schema.getName());
         return WireMock.matching(".*");
     }

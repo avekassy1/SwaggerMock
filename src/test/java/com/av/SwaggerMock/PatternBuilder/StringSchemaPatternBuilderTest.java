@@ -30,26 +30,6 @@ public class StringSchemaPatternBuilderTest {
     }
 
     @Test
-    void testExampleIsUsed() {
-        StringSchema schema = new StringSchema();
-        schema.setExample("Example string");
-
-        StringValuePattern pattern = builder.create(schema);
-        assertTrue(pattern instanceof EqualToPattern);
-        assertEquals("Example string", ((EqualToPattern) pattern).getExpected());
-    }
-
-    @Test
-    void testDefaultIsUsedWhenNoExample() {
-        StringSchema schema = new StringSchema();
-        schema.setDefault("Default string");
-
-        StringValuePattern pattern = builder.create(schema);
-        assertTrue(pattern instanceof EqualToPattern);
-        assertEquals("Default string", ((EqualToPattern) pattern).getExpected());
-    }
-
-    @Test
     void testSingleEnumIsUsedAsConstant() {
         StringSchema schema = new StringSchema();
         schema.setEnum(Collections.singletonList("ONLY_ONE"));
