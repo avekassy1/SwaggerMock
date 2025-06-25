@@ -4,7 +4,6 @@ import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.matching.StringValuePattern;
 import io.swagger.v3.oas.models.media.EmailSchema;
 import io.swagger.v3.oas.models.media.Schema;
-import io.swagger.v3.oas.models.media.StringSchema;
 import org.springframework.stereotype.Component;
 
 import java.util.regex.Pattern;
