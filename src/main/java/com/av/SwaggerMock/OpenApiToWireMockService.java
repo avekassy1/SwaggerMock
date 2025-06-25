@@ -67,6 +67,7 @@ public class OpenApiToWireMockService {
     private MappingBuilder createRequestPattern(
         String path, PathItem pathItem, Operation operation, PathItem.HttpMethod method) {
 
+        // TODO - deal with path parameters in URL
         MappingBuilder requestPattern = WireMock.request(method.name(), WireMock.urlPathTemplate(path));
 
         List<Parameter> allParams = getAllParameters(pathItem, operation);
@@ -79,7 +80,7 @@ public class OpenApiToWireMockService {
     private ResponseDefinitionBuilder createResponseDefinitionBuilder(Operation operation) {
         ResponseDefinitionBuilder responseDefinition =
             new ResponseDefinitionBuilder()
-                // How to deal with multiple responses provided in a swagger?
+                // Q: How to deal with multiple responses provided in a swagger?
                 .withStatus(Integer.parseInt(operation.getResponses().keySet().iterator().next()));
         // Further fields: use .like() method of ResponseDefBuilder for inspiration
 
@@ -121,7 +122,7 @@ public class OpenApiToWireMockService {
             BiConsumer<String, StringValuePattern> applier = entry.getValue();
 
             List<Parameter> params = paramGroups.getOrDefault(paramType, Collections.emptyList());
-            for (Parameter parameter: params) {
+            for (Parameter parameter : params) {
                 Schema schema = parameter.getSchema();
                 StringValuePattern pattern = schemaToPatternBuilderDispatcher.createPattern(schema);
 
