@@ -12,15 +12,15 @@ import io.swagger.v3.oas.models.PathItem;
 import io.swagger.v3.oas.models.media.Schema;
 import io.swagger.v3.oas.models.parameters.Parameter;
 import io.swagger.v3.parser.OpenAPIV3Parser;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 
-import static com.av.SwaggerMock.PatternBuilder.PatternBuilderUtils.TEMPORARY;
-import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
-
+@Slf4j
 @Service
 public class OpenApiToWireMockService {
 
@@ -57,11 +57,10 @@ public class OpenApiToWireMockService {
         // REQUEST
         MappingBuilder requestPattern = createRequestPattern(path, pathItem, operation, method);
         // RESPONSE
-        ResponseDefinitionBuilder responseDefBuilder = createResponseDefinitionBuilder();
+        ResponseDefinitionBuilder responseDefBuilder = createResponseDefinitionBuilder(operation);
         // STUB
         StubMapping stubMapping = requestPattern.willReturn(responseDefBuilder).build();
-        System.out.println("Stub created:\n" + stubMapping.toString()); // TODO - use SLF4J logger instead
-
+        log.info("Stub created:\n{}", stubMapping);
         return stubMapping;
     }
 
@@ -72,17 +71,22 @@ public class OpenApiToWireMockService {
 
         List<Parameter> allParams = getAllParameters(pathItem, operation);
         Map<String, List<Parameter>> paramGroups = groupParametersByIn(allParams);
-
         putParametersOnRequestPattern(paramGroups, requestPattern);
 
         return requestPattern;
     }
 
-    private ResponseDefinitionBuilder createResponseDefinitionBuilder() {
+    private ResponseDefinitionBuilder createResponseDefinitionBuilder(Operation operation) {
         ResponseDefinitionBuilder responseDefinition =
             new ResponseDefinitionBuilder()
-                .withStatus(200); // TODO - fill up with variable
-        //.withStatusMessage(String.format("Status message. Added path and query params"));
+                // How to deal with multiple responses provided in a swagger?
+                .withStatus(Integer.parseInt(operation.getResponses().keySet().iterator().next()));
+        // Further fields: use .like() method of ResponseDefBuilder for inspiration
+
+        //.withStatusMessage()
+        //.withHeader()
+        //.withBody()
+
         return responseDefinition;
     }
 
@@ -105,49 +109,30 @@ public class OpenApiToWireMockService {
     }
 
     private void putParametersOnRequestPattern(Map<String, List<Parameter>> paramGroups, MappingBuilder requestPattern) {
-        List<Parameter> pathParams = paramGroups.getOrDefault("path", Collections.emptyList());
-        List<Parameter> queryParams = paramGroups.getOrDefault("query", Collections.emptyList());
-        List<Parameter> headerParams = paramGroups.getOrDefault("header", Collections.emptyList());
-        List<Parameter> cookieParams = paramGroups.getOrDefault("cookie", Collections.emptyList());
+        Map<String, BiConsumer<String, StringValuePattern>> parameterAppliers = Map.of(
+            "path", requestPattern::withPathParam,
+            "query", requestPattern::withQueryParam,
+            "header", requestPattern::withHeader,
+            "cookie", requestPattern::withCookie
+        );
 
-        for (Parameter parameter : pathParams) {
-            requestPattern.withPathParam(parameter.getName(), equalTo(TEMPORARY)); // TODO - replace with dispatcher
-        }
+        for (Map.Entry<String, BiConsumer<String, StringValuePattern>> entry : parameterAppliers.entrySet()) {
+            String paramType = entry.getKey();
+            BiConsumer<String, StringValuePattern> applier = entry.getValue();
 
-        for (Parameter parameter : headerParams) {
-            Schema schema = parameter.getSchema();
-            StringValuePattern pattern = schemaToPatternBuilderDispatcher.createPattern(schema);
-            requestPattern.withHeader(parameter.getName(), pattern);
-        }
+            List<Parameter> params = paramGroups.getOrDefault(paramType, Collections.emptyList());
+            for (Parameter parameter: params) {
+                Schema schema = parameter.getSchema();
+                StringValuePattern pattern = schemaToPatternBuilderDispatcher.createPattern(schema);
 
-        for (Parameter parameter : queryParams) {
-            // withQueryParams() takes in a map which may not work with MultiValuePatterns
-            Schema schema = parameter.getSchema();
-            StringValuePattern pattern = schemaToPatternBuilderDispatcher.createPattern(schema);
-            requestPattern.withQueryParam(parameter.getName(), pattern); // TODO - replace with dispatcher
-        }
-
-        for (Parameter parameter : cookieParams) {
-            requestPattern.withCookie(parameter.getName(), equalTo(TEMPORARY)); // TODO - replace with dispatcher
+                if (Boolean.FALSE.equals(parameter.getRequired())) {
+                    log.debug("Parameter '{}' of type '{}' is optional. WireMock stubs may need custom matcher to reflect this.",
+                        parameter.getName(), paramType);
+                    // TODO - reflect this on stub somehow - if required is false, return or(absent(), pattern)?
+                    // Might have to implement a custom matcher
+                }
+                applier.accept(parameter.getName(), pattern);
+            }
         }
     }
 }
-
-//        StubMapping sm = WireMock.request(
-//                        method.name(), WireMock.urlEqualTo(path)
-//                )
-//                .withHeader("Content-Type", "application/json")
-//                //.withQueryParams()
-//                .willReturn(
-//                        aResponse()
-/// /                        .withHeader("Content-Type", "text/plain")
-/// /                        .withBody("Hello world!" + serverDescription)
-//                                .build();
-
-// Questions and thoughts
-// - What pattern/design would be the best for the stub creator? Builder perhaps? Mapstruct?
-// - Considerations for wiremock extension?
-// - Would this work with $ref values (within same or different files)
-// - Add validation step in there
-// - Automatic generation of examples of none provided
-// - Code for deleting or modifying mapping (from UI in future)
