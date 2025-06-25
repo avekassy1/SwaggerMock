@@ -4,12 +4,14 @@ import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.matching.StringValuePattern;
 import io.swagger.v3.oas.models.media.Schema;
 import io.swagger.v3.oas.models.media.StringSchema;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Component
 public class StringSchemaPatternBuilder implements WireMockPatternBuilder {
     @Override
@@ -51,7 +53,7 @@ public class StringSchemaPatternBuilder implements WireMockPatternBuilder {
         }
 
         // 5. Fallback: wildcard match
-        System.out.println("Fallback for param named " + schema.getName());
+        log.debug("Fallback for param named {}", schema.getName());
         return WireMock.matching(".*");
     }
 
