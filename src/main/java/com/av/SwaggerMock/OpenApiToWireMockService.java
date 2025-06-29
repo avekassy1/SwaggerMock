@@ -1,16 +1,23 @@
 package com.av.SwaggerMock;
 
-import com.av.SwaggerMock.PatternBuilder.SchemaToPatternBuilderDispatcher;
+import com.av.SwaggerMock.wiremock.PatternBuilder.SchemaToPatternBuilderDispatcher;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.client.MappingBuilder;
 import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.matching.StringValuePattern;
 import com.github.tomakehurst.wiremock.stubbing.StubMapping;
+import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.Operation;
 import io.swagger.v3.oas.models.PathItem;
+import io.swagger.v3.oas.models.media.Content;
+import io.swagger.v3.oas.models.media.MediaType;
 import io.swagger.v3.oas.models.media.Schema;
 import io.swagger.v3.oas.models.parameters.Parameter;
+import io.swagger.v3.oas.models.responses.ApiResponse;
+import io.swagger.v3.oas.models.responses.ApiResponses;
 import io.swagger.v3.parser.OpenAPIV3Parser;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,6 +32,7 @@ import java.util.stream.Collectors;
 public class OpenApiToWireMockService {
 
     private final SchemaToPatternBuilderDispatcher schemaToPatternBuilderDispatcher;
+    private static final ObjectMapper objectMapper = new ObjectMapper();
 
     @Autowired
     public OpenApiToWireMockService(SchemaToPatternBuilderDispatcher schemaToPatternBuilderDispatcher) {
@@ -38,6 +46,9 @@ public class OpenApiToWireMockService {
         if (openAPI == null) {
             throw new IllegalArgumentException("Invalid OpenAPI spec.");
         }
+
+        Components components = openAPI.getComponents(); // Stores reusable definitions
+        // Passing this down to every other function is tedious, need an object-oriented approach I reckon
 
         List<StubMapping> stubMappings = new ArrayList<>();
         openAPI.getPaths().forEach((path, pathItem) -> {
@@ -78,17 +89,54 @@ public class OpenApiToWireMockService {
     }
 
     private ResponseDefinitionBuilder createResponseDefinitionBuilder(Operation operation) {
+        ApiResponses responses = operation.getResponses();
+        String statusCode = responses.keySet().iterator().next();
+
+        // How to deal with multiple responses provided? Create a stub for each innit?
+        // But then logic won't hold up for client-side error responses
+        // For now, generate response for one and only one status aka the first one
+
+        ApiResponse response = responses.get(statusCode);
         ResponseDefinitionBuilder responseDefinition =
             new ResponseDefinitionBuilder()
-                // Q: How to deal with multiple responses provided in a swagger?
-                .withStatus(Integer.parseInt(operation.getResponses().keySet().iterator().next()));
+                .withStatus(Integer.parseInt(statusCode));
         // Further fields: use .like() method of ResponseDefBuilder for inspiration
-
         //.withStatusMessage()
-        //.withHeader()
-        //.withBody()
+
+        putBodyOnResponseDefinition(response, responseDefinition);
 
         return responseDefinition;
+    }
+
+    private static void putBodyOnResponseDefinition(ApiResponse response, ResponseDefinitionBuilder responseDefinition) {
+        Content content = response.getContent(); // LinkedHashMap<String, MediaType>
+        if (content == null || content.isEmpty()) return;
+
+        String contentType = content.keySet().iterator().next();
+        responseDefinition.withHeader("Content-Type", contentType);
+
+        MediaType mediaType = content.get(contentType);
+        Schema bodySchema = mediaType.getSchema();
+        String $ref = bodySchema.get$ref();
+
+        Object example = bodySchema.getExample();
+        // Example isn't picked up if referenced
+
+        if (example != null) {
+            String json = null;
+            try {
+                json = objectMapper.writeValueAsString(example);
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException(e);
+            }
+            responseDefinition.withBody(json);
+            return;
+        }
+
+
+        responseDefinition.withBody("body"); // input is either string or byte
+        // Also possible to have withResponseBody(Body body) and a withJsonBody(JsonNode jsonBody)
+        // Factory pattern again
     }
 
     private Map<String, List<Parameter>> groupParametersByIn(List<Parameter> parameters) {
