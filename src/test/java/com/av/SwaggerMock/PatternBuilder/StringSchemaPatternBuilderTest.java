@@ -1,5 +1,6 @@
 package com.av.SwaggerMock.PatternBuilder;
 
+import com.av.SwaggerMock.wiremock.PatternBuilder.StringSchemaPatternBuilder;
 import com.github.tomakehurst.wiremock.matching.EqualToPattern;
 import com.github.tomakehurst.wiremock.matching.RegexPattern;
 import com.github.tomakehurst.wiremock.matching.StringValuePattern;

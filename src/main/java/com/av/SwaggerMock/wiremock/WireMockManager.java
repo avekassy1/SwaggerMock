@@ -1,4 +1,4 @@
-package com.av.SwaggerMock;
+package com.av.SwaggerMock.wiremock;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
@@ -32,7 +32,6 @@ public class WireMockManager {
     }
 
     public void addMapping(StubMapping mapping) {
-        //startServerIfNotRunning();
         wireMockServer.addStubMapping(mapping);
     }
 

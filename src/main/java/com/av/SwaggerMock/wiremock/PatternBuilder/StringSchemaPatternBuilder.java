@@ -1,4 +1,4 @@
-package com.av.SwaggerMock.PatternBuilder;
+package com.av.SwaggerMock.wiremock.PatternBuilder;
 
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.matching.StringValuePattern;

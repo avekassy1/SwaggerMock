@@ -1,5 +1,7 @@
-package com.av.SwaggerMock;
+package com.av.SwaggerMock.controller;
 
+import com.av.SwaggerMock.OpenApiToWireMockService;
+import com.av.SwaggerMock.wiremock.WireMockManager;
 import com.github.tomakehurst.wiremock.common.Json;
 import com.github.tomakehurst.wiremock.stubbing.StubMapping;
 import lombok.RequiredArgsConstructor;

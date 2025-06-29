@@ -1,4 +1,4 @@
-package com.av.SwaggerMock.PatternBuilder;
+package com.av.SwaggerMock.wiremock.PatternBuilder;
 
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.matching.StringValuePattern;
@@ -19,6 +19,8 @@ public class SchemaToPatternBuilderDispatcher {
     }
 
     public StringValuePattern createPattern(Schema<?> schema) {
+
+        // TODO - change this to hashmap please. Hate looping through 17 builder implementations
         for (WireMockPatternBuilder builder : builders) {
             if (builder.supports(schema)) {
                 return builder.create(schema);
