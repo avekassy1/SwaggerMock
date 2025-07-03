@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 import java.util.regex.Pattern;
 
 @Component
-public class EmailFormatPatternBuilder implements WireMockPatternBuilder {
+public class EmailSchemaPatternBuilder implements WireMockPatternBuilder {
 
     private static final Pattern EMAIL_REGEX =
         Pattern.compile("^[\\w\\.-]+@[\\w\\.-]+\\.\\w{2,}$");

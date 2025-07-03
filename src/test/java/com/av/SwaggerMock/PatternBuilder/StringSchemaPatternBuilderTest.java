@@ -26,12 +26,12 @@ public class StringSchemaPatternBuilderTest {
     }
 
     @Test
-    void testSupportsStringSchema() {
+    void shouldSupportsStringSchema() {
         assertTrue(builder.supports(new StringSchema()));
     }
 
     @Test
-    void testSingleEnumIsUsedAsConstant() {
+    void shouldUseSingleEnumAsConstant() {
         StringSchema schema = new StringSchema();
         schema.setEnum(Collections.singletonList("ONLY_ONE"));
 
@@ -41,7 +41,7 @@ public class StringSchemaPatternBuilderTest {
     }
 
     @Test
-    void testMultipleEnumsCreatesRegexPattern() {
+    void shouldCreateMultipleEnumsRegexPattern() {
         StringSchema schema = new StringSchema();
         schema.setEnum(Arrays.asList("ENUM1", "ENUM2", "ENUM3"));
 
@@ -51,7 +51,7 @@ public class StringSchemaPatternBuilderTest {
     }
 
     @Test
-    void testRegexPatternUsed() {
+    void shouldUseRegexPattern() {
         StringSchema schema = new StringSchema();
         schema.setPattern("^\\d{3}-\\d{2}-\\d{4}$");
 
@@ -61,7 +61,7 @@ public class StringSchemaPatternBuilderTest {
     }
 
     @Test
-    void testMinAndMaxLengthPattern() {
+    void shouldCreateMinAndMaxLengthPattern() {
         StringSchema schema = new StringSchema();
         schema.setMinLength(3);
         schema.setMaxLength(10);
