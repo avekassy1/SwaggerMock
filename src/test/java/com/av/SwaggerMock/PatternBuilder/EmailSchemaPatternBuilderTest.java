@@ -1,4 +1,5 @@
 package com.av.SwaggerMock.PatternBuilder;
+
 import com.av.SwaggerMock.wiremock.PatternBuilder.EmailSchemaPatternBuilder;
 import com.github.tomakehurst.wiremock.matching.RegexPattern;
 import com.github.tomakehurst.wiremock.matching.StringValuePattern;
