@@ -18,29 +18,31 @@ import io.swagger.v3.oas.models.media.Schema;
 import io.swagger.v3.oas.models.parameters.Parameter;
 import io.swagger.v3.oas.models.responses.ApiResponse;
 import io.swagger.v3.oas.models.responses.ApiResponses;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
 
 import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 
 @Slf4j
-@AllArgsConstructor
+@Component
+@RequiredArgsConstructor
 public class StubMappingGenerator {
 
-    private final OpenAPI openAPI;
     private final SchemaToPatternBuilderDispatcher schemaToPatternBuilderDispatcher;
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
-    public List<StubMapping> generate() {
+    private static OASComponentResolver componentResolver;
+
+    public List<StubMapping> generate(OpenAPI openAPI) {
+        componentResolver = new OASComponentResolver(openAPI.getComponents());
+
         List<StubMapping> stubMappings = new ArrayList<>();
-
-        OASComponentResolver componentResolver = new OASComponentResolver(openAPI.getComponents());
-
         openAPI.getPaths().forEach((path, pathItem) -> {
             pathItem.readOperationsMap().forEach((httpMethod, operation) -> {
-                StubMapping stubMapping = createStubFromOperation(operation, path, pathItem, httpMethod, componentResolver);
+                StubMapping stubMapping = createStubFromOperation(operation, path, pathItem, httpMethod);
                 stubMappings.add(stubMapping);
             });
         });
@@ -49,8 +51,7 @@ public class StubMappingGenerator {
     }
 
     private StubMapping createStubFromOperation(
-        Operation operation, String path,
-        PathItem pathItem, PathItem.HttpMethod method, OASComponentResolver componentResolver) {
+        Operation operation, String path, PathItem pathItem, PathItem.HttpMethod method) {
 
         // REQUEST
         MappingBuilder requestPattern = createRequestPattern(path, pathItem, operation, method);
@@ -88,7 +89,6 @@ public class StubMappingGenerator {
             new ResponseDefinitionBuilder()
                 .withStatus(Integer.parseInt(statusCode));
         // Further fields: use .like() method of ResponseDefBuilder for inspiration
-        //.withStatusMessage()
 
         putBodyOnResponseDefinition(response, responseDefinition);
 
@@ -104,12 +104,16 @@ public class StubMappingGenerator {
 
         MediaType mediaType = content.get(contentType);
         Schema<?> bodySchema = mediaType.getSchema(); // ? is a questionable declaration
-        // TODO - rewrite this with OAPComponentResolver
-        String $ref = bodySchema.get$ref();
+        if (bodySchema.get$ref() != null) {
+            Schema<?> referencedSchema = componentResolver.resolveSchema(bodySchema);
+            // How do I add that to the stub?
+            // responseDefinition.withJsonBody() ???
+            return;
+        }
+
 
         Object example = bodySchema.getExample();
         // Example isn't picked up if referenced
-        // OASComponentResolver has to reach this point to deal with this problem
 
         if (example != null) {
             String json = null;
