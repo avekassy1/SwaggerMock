@@ -7,6 +7,9 @@ import io.swagger.v3.oas.models.parameters.RequestBody;
 import io.swagger.v3.oas.models.responses.ApiResponse;
 import lombok.AllArgsConstructor;
 
+import java.util.Map;
+import java.util.function.Function;
+
 /*
 Resolver extracting $ref values
 * */
@@ -16,27 +19,29 @@ public class OASComponentResolver {
     private final Components components;
 
     public Schema<?> resolveSchema(Schema<?> schema) {
-        if (schema == null || schema.get$ref() == null) return schema;
-        String refName = extractRefName(schema.get$ref());
-        return components.getSchemas().get(refName);
+        return resolve(schema, components.getSchemas(), Schema::get$ref);
     }
 
     public Parameter resolveParameter(Parameter parameter) {
-        if (parameter == null || parameter.get$ref() == null) return parameter;
-        String refName = extractRefName(parameter.get$ref());
-        return components.getParameters().get(refName);
+        return resolve(parameter, components.getParameters(), Parameter::get$ref);
     }
 
     public RequestBody resolveRequestBody(RequestBody requestBody) {
-        if (requestBody == null || requestBody.get$ref() == null) return requestBody;
-        String refName = extractRefName(requestBody.get$ref());
-        return components.getRequestBodies().get(refName);
+        return resolve(requestBody, components.getRequestBodies(), RequestBody::get$ref);
     }
 
     public ApiResponse resolveResponse(ApiResponse response) {
-        if (response == null || response.get$ref() == null) return response;
-        String refName = extractRefName(response.get$ref());
-        return components.getResponses().get(refName);
+        return resolve(response, components.getResponses(), ApiResponse::get$ref);
+    }
+
+    private <T> T resolve(T componentWithRef, Map<String, T> componentMap, Function<T, String> refExtractor) {
+        if (componentWithRef == null) return null;
+
+        String ref = refExtractor.apply(componentWithRef);
+        if (ref == null) return componentWithRef;
+
+        String refName = extractRefName(ref);
+        return componentMap.getOrDefault(refName, componentWithRef);
     }
 
     private String extractRefName(String ref) {
