@@ -48,7 +48,8 @@ public class OASComponentResolverTest {
         assertEquals("path", resolvedParam.getIn());
     }
 
-    @Test void shouldResolveReferencedRequestBody() {
+    @Test
+    void shouldResolveReferencedRequestBody() {
         RequestBody requestBodyWithRef = new RequestBody();
         requestBodyWithRef.set$ref("#/components/requestBodies/CreateUserBody");
         RequestBody resolvedRequestBody = resolver.resolveRequestBody(requestBodyWithRef);
@@ -57,7 +58,8 @@ public class OASComponentResolverTest {
         assertEquals("User creation body", resolvedRequestBody.getDescription());
     }
 
-    @Test void shouldResolveReferencedResponse() {
+    @Test
+    void shouldResolveReferencedResponse() {
         ApiResponse responseWithRef = new ApiResponse();
         responseWithRef.set$ref("#/components/responses/SuccessResponse");
         ApiResponse resolvedResponse = resolver.resolveResponse(responseWithRef);
