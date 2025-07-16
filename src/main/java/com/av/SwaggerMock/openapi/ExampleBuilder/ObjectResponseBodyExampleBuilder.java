@@ -28,7 +28,8 @@ public class ObjectResponseBodyExampleBuilder implements RecursiveResponseBodyEx
                 result.put(name, dispatcher.buildExample((Schema<?>) prop)));
         }
 
-        return result;    }
+        return result;
+    }
 
     @Override
     public Object build(Schema<?> schema) {
