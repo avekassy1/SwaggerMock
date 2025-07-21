@@ -5,6 +5,7 @@ import com.av.SwaggerMock.openapi.ExampleBuilder.ObjectResponseBodyExampleBuilde
 import com.av.SwaggerMock.openapi.ExampleBuilder.SchemaToExampleBuilderDispatcher;
 import io.swagger.v3.oas.models.media.IntegerSchema;
 import io.swagger.v3.oas.models.media.ObjectSchema;
+import io.swagger.v3.oas.models.media.Schema;
 import io.swagger.v3.oas.models.media.StringSchema;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,8 +15,7 @@ import java.util.Map;
 
 import static com.av.SwaggerMock.utils.Constants.EXAMPLE_INT;
 import static com.av.SwaggerMock.utils.Constants.EXAMPLE_STRING;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest(classes = SwaggerMockApplication.class)
 public class ObjectResponseBodyExampleBuilderTest {
@@ -28,6 +28,22 @@ public class ObjectResponseBodyExampleBuilderTest {
 
 
     @Test
+    void shouldSupportObjectSchema() {
+        assertTrue(builder.supports(new ObjectSchema()));
+    }
+
+    @Test
+    void shouldNotSupportOtherSchemaTypes() {
+        assertFalse(builder.supports(new Schema<>()));
+        assertFalse(builder.supports(new StringSchema()));
+    }
+
+    @Test
+    void shouldThrowUnsupportedOperationExceptionWhenBuilderIsCalledWithNoDispatcher() {
+        assertThrows(UnsupportedOperationException.class, () -> builder.build(new Schema<>()));
+    }
+
+    @Test
     void shouldReturnExampleIfPresent() {
         ObjectSchema schema = new ObjectSchema();
         schema.setExample(Map.of("foo", "bar"));
@@ -38,7 +54,7 @@ public class ObjectResponseBodyExampleBuilderTest {
     }
 
     @Test
-    void shouldBuildObjectWithStringandIntForProperties() {
+    void shouldBuildObjectWithStringAndIntForProperties() {
         ObjectSchema schema = new ObjectSchema();
         schema.addProperties("name", new StringSchema());
         schema.addProperties("age", new IntegerSchema());

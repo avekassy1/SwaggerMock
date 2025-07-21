@@ -3,6 +3,7 @@ plugins {
 	id 'org.springframework.boot' version '3.4.5'
 	id 'io.spring.dependency-management' version '1.1.7'
 	id("io.freefair.lombok") version "8.13.1"
+	id 'jacoco'
 }
 
 group = 'com.av'
@@ -25,9 +26,19 @@ dependencies {
 
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testImplementation 'org.wiremock:wiremock-standalone:3.13.0'
-//	testImplementation 'net.javacrumbs.json-unit:json-unit:3.5.0'
 	testImplementation 'net.javacrumbs.json-unit:json-unit-assertj:3.5.0'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+test {
+	finalizedBy jacocoTestReport // report is always generated after tests run
+}
+jacocoTestReport {
+	dependsOn test // tests are required to run before generating the report
+}
+jacoco {
+	toolVersion = "0.8.13"
+	reportsDirectory = layout.buildDirectory.dir('customJacocoReportDir')
 }
 
 tasks.named('test') {

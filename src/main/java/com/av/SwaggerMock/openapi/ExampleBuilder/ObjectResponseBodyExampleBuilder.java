@@ -40,40 +40,4 @@ public class ObjectResponseBodyExampleBuilder implements RecursiveResponseBodyEx
     public Class<? extends Schema<?>> getSchemaType() {
         return ObjectSchema.class;
     }
-
-
-//    // BUG - autowiring creates a circular dependency which is not allowed in Spring
-//    private final SchemaToExampleBuilderDispatcher dispatcher;
-//
-//    public ObjectExampleBuilder() {
-//        this.dispatcher = dispatcher;
-//    }
-////
-////    @Autowired
-////    public ObjectExampleBuilder(SchemaToExampleBuilderDispatcher dispatcher) {
-////        this.dispatcher = dispatcher;
-////    }
-//
-//    @Override
-//    public boolean supports(Schema<?> schema) {
-//        return schema instanceof ObjectSchema || (schema.getType() != null && schema.getType().equals("object"));
-//    }
-//
-//    @Override
-//    public Object build(Schema<?> schema) {
-//        if (schema.getExample() != null) {
-//            return schema.getExample();
-//        }
-//
-//        Map<String, Object> result = new LinkedHashMap<>();
-//        if (schema.getProperties() != null) {
-//            schema.getProperties().forEach((name, prop) -> result.put(name, dispatcher.buildExample(prop)));
-//        }
-//        return result;
-//    }
-//
-//    @Override
-//    public Class<? extends Schema<?>> getSchemaType() {
-//        return ObjectSchema.class;
-//    }
 }
