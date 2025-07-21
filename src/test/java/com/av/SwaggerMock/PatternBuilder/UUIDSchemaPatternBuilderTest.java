@@ -27,12 +27,12 @@ public class UUIDSchemaPatternBuilderTest {
     }
 
     @Test
-    void shouldSupportEmailSchema() {
+    void shouldSupportUUIDSchema() {
         assertTrue(builder.supports(new UUIDSchema()));
     }
 
     @Test
-    void shouldCreateEmailRegexPattern() {
+    void shouldCreateUUIDRegexPattern() {
         UUIDSchema schema = new UUIDSchema();
 
         StringValuePattern pattern = builder.create(schema);
@@ -42,4 +42,10 @@ public class UUIDSchemaPatternBuilderTest {
         String actualRegex = ((RegexPattern) pattern).getExpected();
         assertEquals(expectedRegex, actualRegex);
     }
+
+    @Test
+    void shouldReturnUUIDSchemaClass() {
+        assertEquals(UUIDSchema.class, builder.getSchemaType());
+    }
+
 }

@@ -21,13 +21,9 @@ public class NumberSchemaPatternBuilder implements WireMockPatternBuilder {
     public StringValuePattern create(Schema<?> schema) {
 
         List<?> enumValues = schema.getEnum();
-
-
-        // ENUMs - match any of them
         if (enumValues != null && !enumValues.isEmpty()) {
             String joined = enumValues.stream()
                 .map(Object::toString)
-                .map(Pattern::quote) // Escape to avoid regex issues
                 .collect(Collectors.joining("|"));
             return WireMock.matching("^(" + joined + ")$");
         }
@@ -38,9 +34,9 @@ public class NumberSchemaPatternBuilder implements WireMockPatternBuilder {
         // Boolean exclusiveMinimum = schema.getExclusiveMinimum();
         // BigDecimal multipleOf = schema.getMultipleOf();
 
-        // Might have to implement a customer matcher. No regexp will be sufficient for checking multipleOf
+        // Regular expression cannot express contrainst extracted above. Implement custom matcher?
 
-        return WireMock.matching("\"^-?\\\\d+(\\\\.\\\\d+)?$\";"); // Allows optinal minus sign and optional decimal part
+        return WireMock.matching("\"^-?\\\\d+(\\\\.\\\\d+)?$\";"); // Allows optimal minus sign and optional decimal part
     }
 
     @Override
