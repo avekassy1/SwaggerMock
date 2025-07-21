@@ -1,4 +1,4 @@
-package com.av.SwaggerMock.ExampleBuilder;
+package com.av.SwaggerMock.ResponseMatching;
 
 import com.av.SwaggerMock.SwaggerMockApplication;
 import com.av.SwaggerMock.openapi.ExampleBuilder.ObjectResponseBodyExampleBuilder;

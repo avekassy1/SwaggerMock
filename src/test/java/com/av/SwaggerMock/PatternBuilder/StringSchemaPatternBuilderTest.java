@@ -4,6 +4,8 @@ import com.av.SwaggerMock.wiremock.PatternBuilder.StringSchemaPatternBuilder;
 import com.github.tomakehurst.wiremock.matching.EqualToPattern;
 import com.github.tomakehurst.wiremock.matching.RegexPattern;
 import com.github.tomakehurst.wiremock.matching.StringValuePattern;
+import io.swagger.v3.oas.models.media.NumberSchema;
+import io.swagger.v3.oas.models.media.Schema;
 import io.swagger.v3.oas.models.media.StringSchema;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -12,8 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.util.Arrays;
 import java.util.Collections;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class StringSchemaPatternBuilderTest {
 
@@ -23,6 +24,12 @@ public class StringSchemaPatternBuilderTest {
     @BeforeEach
     void setUp() {
         builder = new StringSchemaPatternBuilder();
+    }
+
+    @Test
+    void shouldNotSupportOtherSchemaTypes() {
+        assertFalse(builder.supports(new Schema<>()));
+        assertFalse(builder.supports(new NumberSchema()));
     }
 
     @Test
