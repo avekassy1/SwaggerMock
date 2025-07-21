@@ -69,7 +69,6 @@ public class StubMappingGenerator {
     private MappingBuilder createRequestPattern(
         String path, PathItem pathItem, Operation operation, PathItem.HttpMethod method) {
 
-        // TODO - deal with path parameters in URL
         MappingBuilder requestPattern = WireMock.request(method.name(), WireMock.urlPathTemplate(path));
 
         List<Parameter> allParams = getAllParameters(pathItem, operation);
@@ -93,12 +92,12 @@ public class StubMappingGenerator {
                 .withStatus(Integer.parseInt(statusCode));
         // Further fields: use .like() method of ResponseDefBuilder for inspiration
 
-        putBodyOnResponseDefinition(response, responseDefinition);
+        putJsonBodyOnResponseDefinition(response, responseDefinition);
 
         return responseDefinition;
     }
 
-    private void putBodyOnResponseDefinition(ApiResponse response, ResponseDefinitionBuilder responseDefinition) {
+    private void putJsonBodyOnResponseDefinition(ApiResponse response, ResponseDefinitionBuilder responseDefinition) {
         Content content = response.getContent(); // LinkedHashMap<String, MediaType>
         if (content == null || content.isEmpty()) return;
 
@@ -119,6 +118,7 @@ public class StubMappingGenerator {
             responseDefinition.withJsonBody(wmockJsonNode);
         } catch (JsonProcessingException e) {
             log.warn("Failed to generate example response body from schema", e);
+            throw new RuntimeException("Invalid JSON body", e);
         }
     }
 
