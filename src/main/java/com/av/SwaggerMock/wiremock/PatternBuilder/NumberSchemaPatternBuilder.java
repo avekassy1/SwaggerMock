@@ -7,7 +7,6 @@ import io.swagger.v3.oas.models.media.Schema;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Component

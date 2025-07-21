@@ -1,12 +1,8 @@
 package com.av.SwaggerMock.integrationTests;
 
 import com.av.SwaggerMock.wiremock.WireMockManager;
-import com.github.tomakehurst.wiremock.WireMockServer;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 public class WireMockManagerTest {
     private WireMockManager wireMockManager;
