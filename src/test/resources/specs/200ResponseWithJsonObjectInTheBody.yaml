@@ -6,7 +6,7 @@ paths:
   /users/{id}:
     parameters:
       - schema:
-          type: integer
+          type: string
         name: id
         in: path
         required: true
@@ -28,5 +28,5 @@ paths:
                     type: boolean
                 example:
                   id: 1
-                  name: Jessica Right
+                  name: Susan Right
                   fullTime: true

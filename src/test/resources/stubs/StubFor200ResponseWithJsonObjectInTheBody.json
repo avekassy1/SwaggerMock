@@ -1,7 +1,12 @@
 {
   "request": {
     "method": "GET",
-    "urlPattern": "/users/\\\\d+"
+    "urlPathTemplate": "/users/{id}",
+    "pathParameters": {
+      "id": {
+        "matches": ".*"
+      }
+    }
   },
   "response": {
     "status": 200,
@@ -10,7 +15,7 @@
     },
     "jsonBody": {
       "id": 1,
-      "name": "Jessica Right",
+      "name": "Susan Right",
       "fullTime": true
     }
   }

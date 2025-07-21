@@ -38,7 +38,7 @@ public class NumberSchemaPatternBuilder implements WireMockPatternBuilder {
         // Boolean exclusiveMinimum = schema.getExclusiveMinimum();
         // BigDecimal multipleOf = schema.getMultipleOf();
 
-        // TODO - implement customer matcher. No regexp will be sufficient for checking multipleOf
+        // Might have to implement a customer matcher. No regexp will be sufficient for checking multipleOf
 
         return WireMock.matching("\"^-?\\\\d+(\\\\.\\\\d+)?$\";"); // Allows optinal minus sign and optional decimal part
     }

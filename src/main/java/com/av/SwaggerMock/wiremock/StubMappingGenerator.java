@@ -1,5 +1,6 @@
 package com.av.SwaggerMock.wiremock;
 
+import com.av.SwaggerMock.openapi.ExampleBuilder.SchemaToExampleBuilderDispatcher;
 import com.av.SwaggerMock.openapi.OASComponentResolver;
 import com.av.SwaggerMock.wiremock.PatternBuilder.SchemaToPatternBuilderDispatcher;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -7,6 +8,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.client.MappingBuilder;
 import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder;
 import com.github.tomakehurst.wiremock.client.WireMock;
+import com.github.tomakehurst.wiremock.common.Json;
 import com.github.tomakehurst.wiremock.matching.StringValuePattern;
 import com.github.tomakehurst.wiremock.stubbing.StubMapping;
 import io.swagger.v3.oas.models.OpenAPI;
@@ -21,6 +23,7 @@ import io.swagger.v3.oas.models.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import wiremock.com.fasterxml.jackson.databind.JsonNode;
 
 import java.util.*;
 import java.util.function.BiConsumer;
@@ -32,8 +35,8 @@ import java.util.stream.Collectors;
 public class StubMappingGenerator {
 
     private final SchemaToPatternBuilderDispatcher schemaToPatternBuilderDispatcher;
+    private final SchemaToExampleBuilderDispatcher schemaToExampleBuilderDispatcher;
     private static final ObjectMapper objectMapper = new ObjectMapper();
-
     private static OASComponentResolver componentResolver;
 
     public List<StubMapping> generate(OpenAPI openAPI) {
@@ -95,7 +98,7 @@ public class StubMappingGenerator {
         return responseDefinition;
     }
 
-    private static void putBodyOnResponseDefinition(ApiResponse response, ResponseDefinitionBuilder responseDefinition) {
+    private void putBodyOnResponseDefinition(ApiResponse response, ResponseDefinitionBuilder responseDefinition) {
         Content content = response.getContent(); // LinkedHashMap<String, MediaType>
         if (content == null || content.isEmpty()) return;
 
@@ -105,31 +108,18 @@ public class StubMappingGenerator {
         MediaType mediaType = content.get(contentType);
         Schema<?> bodySchema = mediaType.getSchema(); // ? is a questionable declaration
         if (bodySchema.get$ref() != null) {
-            Schema<?> referencedSchema = componentResolver.resolveSchema(bodySchema);
-            // How do I add that to the stub?
-            // responseDefinition.withJsonBody() ???
-            return;
+            bodySchema = componentResolver.resolveSchema(bodySchema);
         }
 
+        Object exampleBody = schemaToExampleBuilderDispatcher.buildExample(bodySchema);
 
-        Object example = bodySchema.getExample();
-        // Example isn't picked up if referenced
-
-        if (example != null) {
-            String json = null;
-            try {
-                json = objectMapper.writeValueAsString(example);
-            } catch (JsonProcessingException e) {
-                throw new RuntimeException(e);
-            }
-            responseDefinition.withBody(json);
-            return;
+        try {
+            String jsonBody = objectMapper.writeValueAsString(exampleBody);
+            JsonNode wmockJsonNode = Json.read(jsonBody, JsonNode.class);
+            responseDefinition.withJsonBody(wmockJsonNode);
+        } catch (JsonProcessingException e) {
+            log.warn("Failed to generate example response body from schema", e);
         }
-
-
-        responseDefinition.withBody("body"); // input is either string or byte
-        // Also possible to have withResponseBody(Body body) and a withJsonBody(JsonNode jsonBody)
-        // Factory pattern again
     }
 
     private Map<String, List<Parameter>> groupParametersByIn(List<Parameter> parameters) {

@@ -1,6 +1,7 @@
 package com.av.SwaggerMock.openapi.ExampleBuilder;
 
 import io.swagger.v3.oas.models.media.Schema;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -8,6 +9,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@Slf4j
 @Component
 public class SchemaToExampleBuilderDispatcher {
 
@@ -25,7 +27,9 @@ public class SchemaToExampleBuilderDispatcher {
 
         ResponseBodyExampleBuilder exampleBuilder = buildersMap.get(schema.getClass());
         if (exampleBuilder == null) {
-            throw new UnsupportedOperationException("No ResponseBodyBuilder found for schema type: " + schema.getClass());
+            log.info("No ResponseBodyBuilder found for schema type: {}", schema.getClass());
+//            throw new UnsupportedOperationException("No ResponseBodyBuilder found for schema type: " + schema.getClass());
+            return null;
         }
         if (exampleBuilder instanceof RecursiveResponseBodyExampleBuilder recursiveBuilder) {
             return recursiveBuilder.build(schema, this);
