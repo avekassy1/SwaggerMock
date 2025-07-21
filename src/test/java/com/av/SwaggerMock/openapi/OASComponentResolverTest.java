@@ -8,8 +8,7 @@ import io.swagger.v3.oas.models.responses.ApiResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class OASComponentResolverTest {
 
@@ -18,7 +17,6 @@ public class OASComponentResolverTest {
     @BeforeEach
     void setUp() {
         Components components = new Components();
-
         components.addSchemas("stringWithLength3to10", new StringSchema().minLength(3).maxLength(10));
         components.addParameters("UserIdParam", new Parameter().name("id").in("path"));
         components.addRequestBodies("CreateUserBody", new RequestBody().description("User creation body"));
@@ -66,5 +64,18 @@ public class OASComponentResolverTest {
 
         assertNotNull(resolvedResponse);
         assertEquals("Success", resolvedResponse.getDescription());
+    }
+
+    @Test
+    void shouldReturnNullIfComponentIsNull() {
+        assertNull(resolver.resolveRequestBody(null));
+    }
+
+    @Test
+    void shouldReturnComponentIfExtractedRefIsNull() {
+        RequestBody requestBodyWithRef = new RequestBody();
+        requestBodyWithRef.set$ref(null);
+        RequestBody resolvedRequestBody = resolver.resolveRequestBody(requestBodyWithRef);
+        assertEquals(requestBodyWithRef, resolvedRequestBody);
     }
 }
