@@ -7,26 +7,27 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Component
 public class SchemaToPatternBuilderDispatcher {
 
-    private final List<WireMockPatternBuilder> builders;
+    private final Map<Class<? extends Schema<?>>, WireMockPatternBuilder> builderMap;
 
     @Autowired
     public SchemaToPatternBuilderDispatcher(List<WireMockPatternBuilder> builders) {
-        this.builders = builders;
+        this.builderMap = builders.stream()
+            .collect(Collectors.toMap(WireMockPatternBuilder::getSchemaType, Function.identity()));
     }
 
     public StringValuePattern createPattern(Schema<?> schema) {
 
-        // TODO - change this to hashmap please. Hate looping through 17 builder implementations
-        for (WireMockPatternBuilder builder : builders) {
-            if (builder.supports(schema)) {
-                return builder.create(schema);
-            }
+        WireMockPatternBuilder builder = builderMap.get(schema.getClass());
+        if (builder.supports(schema)) {
+            return builder.create(schema);
         }
-        // Fallback if no builder supports this schema
-        return WireMock.absent(); // TODO - understand fallback better
+        return WireMock.absent();
     }
 }

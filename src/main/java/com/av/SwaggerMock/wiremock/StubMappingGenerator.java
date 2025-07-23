@@ -141,6 +141,7 @@ public class StubMappingGenerator {
     }
 
     private void putParametersOnRequestPattern(Map<String, List<Parameter>> paramGroups, MappingBuilder requestPattern) {
+
         Map<String, BiConsumer<String, StringValuePattern>> parameterAppliers = Map.of(
             "path", requestPattern::withPathParam,
             "query", requestPattern::withQueryParam,
@@ -158,10 +159,7 @@ public class StubMappingGenerator {
                 StringValuePattern pattern = schemaToPatternBuilderDispatcher.createPattern(schema);
 
                 if (Boolean.FALSE.equals(parameter.getRequired())) {
-                    log.debug("Parameter '{}' of type '{}' is optional. WireMock stubs may need custom matcher to reflect this.",
-                        parameter.getName(), paramType);
-                    // TODO - reflect this on stub somehow - if required is false, return or(absent(), pattern)?
-                    // Might have to implement a custom matcher
+                    pattern = WireMock.or(WireMock.absent(), pattern);
                 }
                 applier.accept(parameter.getName(), pattern);
             }

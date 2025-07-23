@@ -9,10 +9,9 @@ import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.Operation;
 import io.swagger.v3.oas.models.PathItem;
 import io.swagger.v3.oas.models.Paths;
-import io.swagger.v3.oas.models.media.Content;
-import io.swagger.v3.oas.models.media.MediaType;
-import io.swagger.v3.oas.models.media.ObjectSchema;
-import io.swagger.v3.oas.models.media.Schema;
+import io.swagger.v3.oas.models.media.*;
+import io.swagger.v3.oas.models.parameters.Parameter;
+import io.swagger.v3.oas.models.parameters.QueryParameter;
 import io.swagger.v3.oas.models.responses.ApiResponse;
 import io.swagger.v3.oas.models.responses.ApiResponses;
 import org.apache.commons.io.FileUtils;
@@ -28,7 +27,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
 public class StubMappingGeneratorTest {
@@ -49,17 +48,35 @@ public class StubMappingGeneratorTest {
 
     @Test
     void shouldLogWarningWhenJsonProcessingExceptionOccurs() throws Exception {
-        OpenAPI openAPI = generateOpenApiWithUnserializableBody();
+        Schema<Object> bodySchema = new ObjectSchema();
+        bodySchema.setExample(new UnserializableObject());
+
+        OpenAPI openAPI = generateCustomOpenApiSpec(bodySchema, null);
         assertThrows(RuntimeException.class, () -> stubMappingGenerator.generate(openAPI));
     }
 
-    private static OpenAPI generateOpenApiWithUnserializableBody() {
-        Schema<Object> schema = new ObjectSchema();
-        schema.setExample(new UnserializableObject());
+    @Test
+    void createRequestMatcherWithOrForNonRequiredParameter() {
+        Parameter optionalQueryParam = new QueryParameter()
+            .name("optionalParam")
+            .required(false)
+            .schema(new StringSchema()._default("defaultVal"));
+
+        OpenAPI openAPI = generateCustomOpenApiSpec(new ObjectSchema(), optionalQueryParam);
+
+        List<StubMapping> mappings = stubMappingGenerator.generate(openAPI);
+        assertFalse(mappings.isEmpty(), "Expected stub mappings to be generated");
+        String mappingJson = mappings.get(0).toString();
+        assertTrue(mappingJson.contains("optionalParam") && mappingJson.contains("queryParameters"),
+            "Optional parameter should be reflected in the stub if supported.");
+
+    }
+
+    private static OpenAPI generateCustomOpenApiSpec(Schema<?> bodySchema, Parameter parameter) {
 
         // Set up the MediaType with the schema
         MediaType mediaType = new MediaType();
-        mediaType.setSchema(schema);
+        mediaType.setSchema(bodySchema);
 
         // Create content with the above MediaType
         Content content = new Content();
@@ -76,6 +93,10 @@ public class StubMappingGeneratorTest {
         // Create an operation (GET, POST, etc.) and attach the responses
         Operation operation = new Operation();
         operation.setResponses(responses);
+
+        if (parameter != null) {
+            operation.addParametersItem(parameter);
+        }
 
         // Create a path item and attach the operation
         PathItem pathItem = new PathItem();

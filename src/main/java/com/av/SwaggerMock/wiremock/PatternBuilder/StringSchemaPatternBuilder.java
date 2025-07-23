@@ -19,17 +19,11 @@ public class StringSchemaPatternBuilder implements WireMockPatternBuilder {
         return schema instanceof StringSchema;
     }
 
-    // TODO - questions
-    // What to do with optional parameters, simply exclude them from the stub?
-    // Are there other things that can be specified vai the OAS for StringSchemas?
-
     @Override
     public StringValuePattern create(Schema<?> schema) {
-        if (!(schema instanceof StringSchema)) {
+        if (!(schema instanceof StringSchema stringSchema)) {
             throw new IllegalArgumentException("Unsupported schema type: " + schema.getType());
         }
-
-        StringSchema stringSchema = (StringSchema) schema;
 
         // 1. Enum with a single constant value
         List<String> enumValues = castEnum(stringSchema.getEnum());

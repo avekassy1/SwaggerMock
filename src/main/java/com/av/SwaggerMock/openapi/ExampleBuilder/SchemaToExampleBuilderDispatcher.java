@@ -28,7 +28,7 @@ public class SchemaToExampleBuilderDispatcher {
         ResponseBodyExampleBuilder exampleBuilder = buildersMap.get(schema.getClass());
         if (exampleBuilder == null) {
             log.info("No ResponseBodyBuilder found for schema type: {}", schema.getClass());
-            // TODO
+            // TODO - discuss error handling w JH
             //throw new UnsupportedOperationException("No ResponseBodyBuilder found for schema type: " + schema.getClass());
             return null;
         }
