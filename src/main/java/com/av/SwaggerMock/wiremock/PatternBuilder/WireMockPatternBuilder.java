@@ -5,9 +5,9 @@ import io.swagger.v3.oas.models.media.Schema;
 
 public interface WireMockPatternBuilder {
 
-    boolean supports(Schema<?> schema);
+  boolean supports(Schema<?> schema);
 
-    StringValuePattern create(Schema<?> schema);
+  StringValuePattern create(Schema<?> schema);
 
-    Class<? extends Schema<?>> getSchemaType();
+  Class<? extends Schema<?>> getSchemaType();
 }

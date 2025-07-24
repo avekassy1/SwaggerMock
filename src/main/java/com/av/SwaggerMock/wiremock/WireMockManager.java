@@ -11,34 +11,33 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component
 public class WireMockManager {
-    private WireMockServer wireMockServer;
+  private WireMockServer wireMockServer;
 
-    private int PORT = 9999;
+  private int PORT = 9999;
 
-    @PostConstruct
-    public void startWireMock() {
-        if (wireMockServer == null || !wireMockServer.isRunning()) {
-            log.info("Starting WireMock server on port {}", PORT);
+  @PostConstruct
+  public void startWireMock() {
+    if (wireMockServer == null || !wireMockServer.isRunning()) {
+      log.info("Starting WireMock server on port {}", PORT);
 
-            WireMockConfiguration config = WireMockConfiguration.wireMockConfig()
-                .port(PORT);
-            wireMockServer = new WireMockServer(config);
-            wireMockServer.start();
-        }
+      WireMockConfiguration config = WireMockConfiguration.wireMockConfig().port(PORT);
+      wireMockServer = new WireMockServer(config);
+      wireMockServer.start();
     }
+  }
 
-    public WireMockServer getServer() {
-        return wireMockServer;
-    }
+  public WireMockServer getServer() {
+    return wireMockServer;
+  }
 
-    public void addMapping(StubMapping mapping) {
-        wireMockServer.addStubMapping(mapping);
-    }
+  public void addMapping(StubMapping mapping) {
+    wireMockServer.addStubMapping(mapping);
+  }
 
-    @PreDestroy
-    public void stopServer() {
-        if (wireMockServer != null && wireMockServer.isRunning()) {
-            wireMockServer.stop();
-        }
+  @PreDestroy
+  public void stopServer() {
+    if (wireMockServer != null && wireMockServer.isRunning()) {
+      wireMockServer.stop();
     }
+  }
 }
