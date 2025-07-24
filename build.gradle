@@ -30,15 +30,24 @@ dependencies {
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
+jacoco {
+	toolVersion = "0.8.13"
+	reportsDirectory = layout.buildDirectory.dir('customJacocoReportDir')
+}
 test {
 	finalizedBy jacocoTestReport // report is always generated after tests run
 }
 jacocoTestReport {
 	dependsOn test // tests are required to run before generating the report
 }
-jacoco {
-	toolVersion = "0.8.13"
-	reportsDirectory = layout.buildDirectory.dir('customJacocoReportDir')
+jacocoTestCoverageVerification {
+	violationRules {
+		rule {
+			limit {
+				minimum = 0.9
+			}
+		}
+	}
 }
 
 tasks.named('test') {
