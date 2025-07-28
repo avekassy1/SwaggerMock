@@ -20,5 +20,16 @@ jobs:
           java-version: '17'
           distribution: 'corretto'
 
+      - name: ⚙️ Set Gradle permissions
+        run: chmod +x ./gradlew
+
+      - name: 🧪 Run build and tests
+        run: ./gradlew build test
+
+      - name: 🎯 Run Jacoco coverage check
+        run: ./gradlew jacocoTestReport jacocoTestCoverageVerification
+
+
+
 #      - name: Build the Docker image
 #        run: docker build . --file Dockerfile --tag my-image-name:$(date +%s)
