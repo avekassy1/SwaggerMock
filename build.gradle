@@ -4,6 +4,7 @@ plugins {
 	id 'io.spring.dependency-management' version '1.1.7'
 	id("io.freefair.lombok") version "8.13.1"
 	id 'jacoco'
+//	id 'com.github.spotbugs' version "6.2.2"
 }
 
 group = 'com.av'
@@ -49,6 +50,13 @@ jacocoTestCoverageVerification {
 		}
 	}
 }
+
+//tasks.withType(com.github.spotbugs.snom.SpotBugsTask).configureEach {
+//    reports {
+//        xml.required.set(false)
+//        html.required.set(true) // Generate HTML report
+//    }
+//}
 
 tasks.named('test') {
 	useJUnitPlatform()
