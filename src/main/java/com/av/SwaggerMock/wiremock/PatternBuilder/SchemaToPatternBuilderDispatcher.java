@@ -25,7 +25,7 @@ public class SchemaToPatternBuilderDispatcher {
   public StringValuePattern createPattern(Schema<?> schema) {
 
     WireMockPatternBuilder builder = builderMap.get(schema.getClass());
-    if (builder.supports(schema)) {
+    if (builder != null && builder.supports(schema)) {
       return builder.create(schema);
     }
     return WireMock.absent();
