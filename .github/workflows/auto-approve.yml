@@ -1,0 +1,14 @@
+name: Auto-approve PRs by owner
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize]
+
+jobs:
+  auto-approve:
+    if: github.actor == 'avekassy1'  # replace with your GitHub username
+    runs-on: ubuntu-latest
+    steps:
+      - uses: hmarr/auto-approve-action@v3
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
