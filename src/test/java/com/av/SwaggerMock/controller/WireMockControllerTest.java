@@ -1,5 +1,6 @@
 package com.av.SwaggerMock.controller;
 
+import static org.hamcrest.Matchers.containsString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -74,7 +75,7 @@ public class WireMockControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(dummySpec))
         .andExpect(status().isOk())
-        .andExpect(content().string("Mappings created: 1"));
+        .andExpect(content().string(containsString("\"url\" : \"/dummy\"")));
   }
 
   @Test
