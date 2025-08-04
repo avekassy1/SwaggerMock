@@ -1,9 +1,10 @@
 package com.av.SwaggerMock.PatternBuilder;
 
+import static com.av.SwaggerMock.Utils.readFileToString;
 import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
 import static org.junit.jupiter.api.Assertions.*;
 
-import com.av.SwaggerMock.OpenApiToWireMockService;
+import com.av.SwaggerMock.service.OpenApiToWireMockService;
 import com.av.SwaggerMock.wiremock.StubMappingGenerator;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -17,13 +18,8 @@ import io.swagger.v3.oas.models.parameters.Parameter;
 import io.swagger.v3.oas.models.parameters.QueryParameter;
 import io.swagger.v3.oas.models.responses.ApiResponse;
 import io.swagger.v3.oas.models.responses.ApiResponses;
-import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
-import org.apache.commons.io.FileUtils;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -131,14 +127,5 @@ public class StubMappingGeneratorTest {
     JsonNode expectedNode = objectMapper.readTree(expectedStub);
 
     assertThatJson(actualNode).whenIgnoringPaths("id", "uuid").isEqualTo(expectedNode);
-  }
-
-  private String readFileToString(String path) throws IOException {
-    URL resource = getClass().getClassLoader().getResource(path);
-    if (resource == null) {
-      throw new FileNotFoundException("Could not find resource " + path);
-    }
-    File file = new File(resource.getFile());
-    return FileUtils.readFileToString(file, StandardCharsets.UTF_8);
   }
 }

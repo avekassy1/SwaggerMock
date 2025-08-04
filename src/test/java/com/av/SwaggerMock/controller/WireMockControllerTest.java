@@ -7,7 +7,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.av.SwaggerMock.OpenApiToWireMockService;
+import com.av.SwaggerMock.service.OpenApiToWireMockService;
 import com.av.SwaggerMock.wiremock.WireMockManager;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.common.Json;
