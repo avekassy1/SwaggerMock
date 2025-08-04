@@ -25,6 +25,7 @@ dependencies {
 	implementation 'org.wiremock:wiremock-standalone:3.13.0'
 	implementation 'io.swagger.parser.v3:swagger-parser:2.1.26'
 	implementation 'com.amazonaws.serverless:aws-serverless-java-container-springboot3:2.1.4'
+	implementation 'org.hibernate.validator:hibernate-validator'
 
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testImplementation 'org.wiremock:wiremock-standalone:3.13.0'
