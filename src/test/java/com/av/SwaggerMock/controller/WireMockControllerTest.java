@@ -60,7 +60,7 @@ public class WireMockControllerTest {
   }
 
   @Test
-  void uploadOpenApiSpec_shouldReturnOkAndAddMappings() throws Exception {
+  void validOpenApiSpecShouldReturnOkAndAddMappings() throws Exception {
     String dummySpec = "openapi: 3.0.0\ninfo:\n  title: Test\npaths: {}";
     StubMapping mapping =
         StubMapping.buildFrom(
@@ -79,15 +79,16 @@ public class WireMockControllerTest {
   }
 
   @Test
-  void uploadOpenApiSpec_shouldReturnBadRequestOnException() throws Exception {
+  void invalidOpenApiSpecshouldReturnBadRequest() throws Exception {
     String badSpec = "invalid spec";
     when(openApiToWireMockService.generateStubMappings(badSpec))
-        .thenThrow(new RuntimeException("Invalid OpenAPI"));
+        .thenThrow(new IllegalArgumentException("Invalid OpenAPI"));
 
     mockMvc
         .perform(
             post("/wiremock/upload-spec").contentType(MediaType.APPLICATION_JSON).content(badSpec))
         .andExpect(status().isBadRequest())
-        .andExpect(content().string(org.hamcrest.Matchers.containsString("Error processing spec")));
+        .andExpect(
+            content().string(org.hamcrest.Matchers.containsString("Bad request: Invalid OpenAPI")));
   }
 }
