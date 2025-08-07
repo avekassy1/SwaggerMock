@@ -1,6 +1,6 @@
 package com.av.SwaggerMock.controller;
 
-import com.av.SwaggerMock.OpenApiToWireMockService;
+import com.av.SwaggerMock.service.OpenApiToWireMockService;
 import com.av.SwaggerMock.wiremock.WireMockManager;
 import com.github.tomakehurst.wiremock.common.Json;
 import com.github.tomakehurst.wiremock.stubbing.StubMapping;
@@ -34,7 +34,8 @@ public class WireMockController {
   @PostMapping("/upload-spec")
   public ResponseEntity<?> uploadOpenApiSpec(@RequestBody String specContent) {
     List<StubMapping> mappings = openApiToWireMockService.generateStubMappings(specContent);
+    // TODO - remove wiremock server
     mappings.forEach(wireMockManager::addMapping);
-    return ResponseEntity.ok("Mappings created: " + mappings.size());
+    return ResponseEntity.ok(mappings.toString());
   }
 }

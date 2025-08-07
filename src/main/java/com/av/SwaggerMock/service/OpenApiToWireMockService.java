@@ -1,4 +1,4 @@
-package com.av.SwaggerMock;
+package com.av.SwaggerMock.service;
 
 import com.av.SwaggerMock.wiremock.StubMappingGenerator;
 import com.github.tomakehurst.wiremock.stubbing.StubMapping;
