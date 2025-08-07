@@ -1,39 +1,32 @@
 package com.av.SwaggerMock.controller;
 
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.util.StreamUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+@Slf4j
 @RestController
 public class LandingPageController {
 
-    private final String banner =
-"""
-  /$$$$$$                                                                  /$$      /$$                     /$$     \s
- /$$__  $$                                                                | $$$    /$$$                    | $$     \s
-| $$  \\__/ /$$  /$$  /$$  /$$$$$$   /$$$$$$   /$$$$$$   /$$$$$$   /$$$$$$ | $$$$  /$$$$  /$$$$$$   /$$$$$$$| $$   /$$
-|  $$$$$$ | $$ | $$ | $$ |____  $$ /$$__  $$ /$$__  $$ /$$__  $$ /$$__  $$| $$ $$/$$ $$ /$$__  $$ /$$_____/| $$  /$$/
- \\____  $$| $$ | $$ | $$  /$$$$$$$| $$  \\ $$| $$  \\ $$| $$$$$$$$| $$  \\__/| $$  $$$| $$| $$  \\ $$| $$      | $$$$$$/\s
- /$$  \\ $$| $$ | $$ | $$ /$$__  $$| $$  | $$| $$  | $$| $$_____/| $$      | $$\\  $ | $$| $$  | $$| $$      | $$_  $$\s
-|  $$$$$$/|  $$$$$/$$$$/|  $$$$$$$|  $$$$$$$|  $$$$$$$|  $$$$$$$| $$      | $$ \\/  | $$|  $$$$$$/|  $$$$$$$| $$ \\  $$
- \\______/  \\_____/\\___/  \\_______/ \\____  $$ \\____  $$ \\_______/|__/      |__/     |__/ \\______/  \\_______/|__/  \\__/
-                                   /$$  \\ $$ /$$  \\ $$                                                              \s
-                                  |  $$$$$$/|  $$$$$$/                                                              \s
-                                   \\______/  \\______/                                                               \s
-""";
+  @GetMapping("/")
+  public String home() {
 
-    @GetMapping("/")
-    public String home() {
+    ClassPathResource bannerResource = new ClassPathResource("banner.txt");
+    ClassPathResource htmlResource = new ClassPathResource("landingPage.txt");
+    String banner = null, landingPageHtml = null;
 
-    return String.format(
-"""
-<pre>
-%s
-</pre>
-<h2>Welcome to SwaggerMock!</h2>
-<p>
-Send a <b>POST</b> request to <code>/wiremock/upload-spec</code> with your Swagger spec in the request body.<br>
-You will receive the generated WireMock stub back in the response.
-</p>
-""", banner);
+    try {
+      banner = StreamUtils.copyToString(bannerResource.getInputStream(), StandardCharsets.UTF_8);
+      landingPageHtml =
+          StreamUtils.copyToString(htmlResource.getInputStream(), StandardCharsets.UTF_8);
+
+    } catch (IOException e) {
+      log.info("Couldn't load SwaggerMock banner or landing page HTML.");
     }
+    return String.format(landingPageHtml, banner);
+  }
 }

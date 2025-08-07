@@ -1,0 +1,8 @@
+<pre>
+%s
+</pre>
+<h2>Welcome to SwaggerMock!</h2>
+<p>
+Send a <b>POST</b> request to <code>/wiremock/upload-spec</code> with your Swagger spec in the request body.<br>
+You will receive the generated WireMock stub back in the response.
+</p>
