@@ -33,13 +33,9 @@ public class WireMockController {
 
   @PostMapping("/upload-spec")
   public ResponseEntity<?> uploadOpenApiSpec(@RequestBody String specContent) {
-    try {
-      List<StubMapping> mappings = openApiToWireMockService.generateStubMappings(specContent);
-      // TODO - remove wiremock server
-      mappings.forEach(wireMockManager::addMapping);
-      return ResponseEntity.ok(mappings.toString());
-    } catch (Exception e) {
-      return ResponseEntity.badRequest().body("Error processing spec: " + e.getMessage());
-    }
+    List<StubMapping> mappings = openApiToWireMockService.generateStubMappings(specContent);
+    // TODO - remove wiremock server
+    mappings.forEach(wireMockManager::addMapping);
+    return ResponseEntity.ok(mappings.toString());
   }
 }
